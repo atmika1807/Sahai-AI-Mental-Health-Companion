@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talk to Sahai</title>
+  <link rel="stylesheet" href="chat-style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="chat-header">
+    <h1>🫂 Sahai</h1>
+    <p>You're safe here. Talk to me anytime.</p>
+  </header>
+
+  <div class="mood-check" id="mood-check">
+    <h2>How are you feeling today?</h2>
+    <div class="mood-options">
+      <button onclick="startChat('low')">😔 Low</button>
+      <button onclick="startChat('anxious')">😰 Anxious</button>
+      <button onclick="startChat('okay')">🙂 Just Okay</button>
+      <button onclick="startChat('good')">😊 Good</button>
+    </div>
+  </div>
+
+  <main class="chat-window">
+    <div class="messages" id="messages" style="display: none;"></div>
+
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Type something..." autocomplete="off" required />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+    const messages = document.getElementById('messages');
+    const moodCheck = document.getElementById('mood-check');
+
+    let mood = '';
+
+    function startChat(selectedMood) {
+      mood = selectedMood;
+      moodCheck.style.display = 'none';
+      messages.style.display = 'block';
+
+      const botMsg = document.createElement('div');
+      botMsg.className = 'bot-message';
+
+      if (mood === 'low') {
+        botMsg.textContent = "It’s okay to feel low. I’m right here with you, no rush.";
+      } else if (mood === 'anxious') {
+        botMsg.textContent = "Breathe with me. You’re safe here, I promise.";
+      } else if (mood === 'okay') {
+        botMsg.textContent = "I'm glad you're doing okay. Want to talk or just chill?";
+      } else if (mood === 'good') {
+        botMsg.textContent = "Yay, love that for you! Want to share what’s been going well?";
+      }
+
+      messages.appendChild(botMsg);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userText = input.value.trim();
+      if (userText === '') return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'user-message';
+      userMsg.textContent = userText;
+      messages.appendChild(userMsg);
+      input.value = '';
+
+      // Talk to GPT-4 backend
+      fetch('http://localhost:5000/chat', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ message: userText })
+})
+
+      .then(res => res.json())
+      .then(data => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'bot-message';
+        botMsg.textContent = data.reply;
+        messages.appendChild(botMsg);
+        messages.scrollTop = messages.scrollHeight;
+      })
+      .catch(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'bot-message';
+        botMsg.textContent = "Sahai’s having a little trouble thinking right now. Try again in a bit 🕊️";
+        messages.appendChild(botMsg);
+      });
+    });
+  </script>
+
+</body>
+</html>
